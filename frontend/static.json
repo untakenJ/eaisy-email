@@ -1,0 +1,10 @@
+{
+    "redirects": [
+      {
+        "source": "/api/*",
+        "destination": "https://eaisy-email-backend.onrender.com/api/:splat",
+        "status": 200
+      }
+    ]
+  }
+  
