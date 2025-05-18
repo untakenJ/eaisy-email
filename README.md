@@ -100,7 +100,7 @@ For production deployment, you'll serve both the frontend and backend from the s
 
 2. From the project root, install dependencies and build:
 ```bash
-cd backend && npm install && cd ../frontend && npm install && npm run build && cd ../backend
+cd backend && npm install && cd ../frontend && npm install && npm run build && cd ..
 ```
 
 3. From the project root, start the server:
