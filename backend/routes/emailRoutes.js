@@ -14,6 +14,23 @@ function cleanJsonString(raw) {
     .replace(/`+$/, '');
 }
 
+// Environment variable validation
+const requiredEnvVars = [
+  'OPENAI_API_KEY',
+  'OWNER_NAME',
+  'OWNER_LANG',
+  'OWNER_NAME_ALT',
+  'SMTP_HOST',
+  'SMTP_USER',
+  'SMTP_PASS',
+  'EMAIL_RECIPIENT'
+];
+
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingEnvVars.length > 0) {
+  console.error('Missing required environment variables:', missingEnvVars);
+}
+
 // OpenAI configuration
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -28,6 +45,19 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   }
+});
+
+// Add request logging middleware
+router.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    body: req.body,
+    query: req.query,
+    headers: {
+      ...req.headers,
+      authorization: req.headers.authorization ? '[REDACTED]' : undefined
+    }
+  });
+  next();
 });
 
 // Generate email
@@ -53,16 +83,24 @@ router.post('/generate-email', async (req, res) => {
     // res.json({ email: emailText });
     res.json(JSON.parse(cleanJsonString(emailText)));
   } catch (error) {
-    console.error("OpenAI error details:", {
+    const errorDetails = {
       message: error.message,
+      type: error.type,
+      code: error.code,
+      param: error.param,
+      model: error.model,
       response: error.response?.data,
-      stack: error.stack,
-      name: error.name,
-      code: error.code
-    });
+      stack: error.stack
+    };
+    
+    console.error("OpenAI error details:", errorDetails);
+    
+    // Send back a sanitized version of the error
     res.status(500).json({ 
       error: "Failed to generate email content",
-      details: error.message
+      details: error.message,
+      type: error.type,
+      code: error.code
     });
   }
 });
