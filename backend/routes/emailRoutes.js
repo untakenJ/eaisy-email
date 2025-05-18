@@ -53,8 +53,17 @@ router.post('/generate-email', async (req, res) => {
     // res.json({ email: emailText });
     res.json(JSON.parse(cleanJsonString(emailText)));
   } catch (error) {
-    console.error("OpenAI error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to generate email content" });
+    console.error("OpenAI error details:", {
+      message: error.message,
+      response: error.response?.data,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ 
+      error: "Failed to generate email content",
+      details: error.message
+    });
   }
 });
 
@@ -83,8 +92,17 @@ router.post('/translate-email', async (req, res) => {
     const emailText = completion.choices[0].message.content.trim();
     res.json({...JSON.parse(cleanJsonString(emailText)), ...{language: process.env.OWNER_LANG}});
   } catch (error) {
-    console.error("OpenAI error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to generate email content" });
+    console.error("OpenAI translation error details:", {
+      message: error.message,
+      response: error.response?.data,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ 
+      error: "Failed to generate email content",
+      details: error.message
+    });
   }
 });
 
