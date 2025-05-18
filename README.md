@@ -29,7 +29,9 @@ Perfect for:
 
 ## Environment Setup
 
-Before deploying, create a `.env` file in the `backend` folder with the following variables:
+### Backend Configuration
+
+Create a `.env` file in the `backend` folder with the following variables:
 
 ```env
 # Node Environment
@@ -53,7 +55,17 @@ SMTP_PASS=your_email_password_here
 EMAIL_RECIPIENT=recipient@example.com  # Where you want to receive the emails
 ```
 
+### Frontend Configuration
+
+Create a `.env` file in the `frontend` folder with the following variables:
+
+```env
+VITE_OWNER_NAME=Your Name  # This will be displayed in the website title and header
+```
+
 Replace the placeholder values with your actual configuration:
+
+Backend variables:
 - `NODE_ENV`: Set to 'production' for production deployment, 'development' for development
 - `OPENAI_API_KEY`: Your OpenAI API key
 - `OWNER_NAME`: Your name in English (this will be used in the generated emails)
@@ -64,6 +76,9 @@ Replace the placeholder values with your actual configuration:
 - `SMTP_USER`: Your email address (for sending the emails)
 - `SMTP_PASS`: Your email password or app-specific password
 - `EMAIL_RECIPIENT`: Email address where you want to receive the emails (can be different from SMTP_USER)
+
+Frontend variables:
+- `VITE_OWNER_NAME`: Your name as you want it to appear in the website title and header
 
 ## Deployment
 

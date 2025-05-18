@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function App() {
   const [emailAddr, setEmailAddr] = useState('');
@@ -8,6 +8,12 @@ function App() {
   const [generatedEmailContent, setGeneratedEmailContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const ownerName = import.meta.env.VITE_OWNER_NAME || 'the owner';
+
+  useEffect(() => {
+    // Update document title
+    document.title = `Email ${ownerName} EAIsily!`;
+  }, [ownerName]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -68,12 +74,12 @@ function App() {
 
   return (
     <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Email Lingze eAIsily!</h1>
+      <h1 className="text-2xl font-bold mb-4">Email {ownerName} eAIsily!</h1>
       <p className="mb-4 text-gray-400">
-        Please answer the following questions in any language! You don't need to think about how to make the email organized or polite. Just write down anything you'd like to share with me!
+        Please answer the following questions in any language! You don't need to think about how to make the email organized or polite. Just write down anything you'd like to share!
       </p>
 
-      <h3 className="mb-4">What's your email address? (I need to know this in order to reply. You may leave this blank if you want to be anonymous.)</h3>
+      <h3 className="mb-4">What's your email address? (We need this to reply. You may leave this blank if you want to be anonymous.)</h3>
       <input
         className="border border-gray-300 rounded w-full p-2 mb-4"
         type="text"
