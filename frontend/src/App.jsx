@@ -9,12 +9,10 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
-  const base = import.meta.env.VITE_API_BASE_URL;
-
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const res = await fetch(`${base}/api/generate-email`, {
+      const res = await fetch('/api/generate-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ toknow, todo })
@@ -38,7 +36,7 @@ function App() {
     }
     setIsSending(true);
     try {
-      const translationRes = await fetch(`${base}/api/translate-email`, {
+      const translationRes = await fetch('/api/translate-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -49,7 +47,7 @@ function App() {
       if (!translationRes.ok) throw new Error('Error translating email');
       const translationData = await translationRes.json();
       
-      const res = await fetch(`${base}/api/send-email`, {
+      const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
