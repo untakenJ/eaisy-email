@@ -2,6 +2,8 @@
 
 A customizable web application that makes it easy for people to email you! 
 
+For any feedback, just try our tool to [email the author](https://eaisyemail.lzhang.org/)!
+
 ## Overview
 
 This project provides a user-friendly website where visitors can easily send emails to the website owner. You can customize it with your own name, preferred language, and email settings.
