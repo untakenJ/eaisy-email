@@ -24,7 +24,8 @@ const requiredEnvVars = [
   'SMTP_HOST',
   'SMTP_USER',
   'SMTP_PASS',
-  'EMAIL_RECIPIENT'
+  'EMAIL_RECIPIENT',
+  'FROM_EMAIL'
 ];
 
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
@@ -191,7 +192,7 @@ router.post('/send-email', upload.array('attachments'), async (req, res) => {
   
   try {
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `Eaisy Email <${process.env.FROM_EMAIL}>`,
       to: process.env.EMAIL_RECIPIENT,
       subject: subject || "(No Subject)",
       text: emailBody,
