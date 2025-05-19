@@ -153,6 +153,7 @@ function App() {
       <div className="mb-4">
         <h3 className="mb-2">Attachments (Optional)</h3>
         <input
+          key={attachments.length}
           type="file"
           multiple
           onChange={handleFileChange}
