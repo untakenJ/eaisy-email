@@ -50,6 +50,8 @@ SMTP_PASS=your_email_password_here
 
 # Email Settings
 EMAIL_RECIPIENT=recipient@example.com  # Where you want to receive the emails
+FROM_EMAIL=your_display_email@example.com  # The email address that will appear in the "From" field
+FROM_NAME="Your Display Name"  # The name that will appear in the "From" field
 ```
 
 ### Template Configuration
