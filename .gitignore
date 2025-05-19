@@ -9,3 +9,5 @@ backend/node_modules/
 # Build output
 frontend/dist/
 .DS_Store
+
+nohup.out
