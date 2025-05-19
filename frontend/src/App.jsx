@@ -224,6 +224,21 @@ function App() {
       > 
         {isSending ? 'Sending…' : 'Send Email'} 
       </button>
+
+      <footer className="mt-8 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
+        <p className="mb-2">
+          Want to deploy your own Eaisy Email? See our 
+          <a 
+            href="https://github.com/untakenJ/eaisy-email" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:text-gray-700 ml-1"
+          >
+            GitHub Repo
+          </a>
+          !
+        </p>
+      </footer>
     </div>
   );
 }
