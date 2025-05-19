@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const OpenAI = require('openai');
 const nodemailer = require('nodemailer');
+const fs = require('fs').promises;
+const path = require('path');
 
 function cleanJsonString(raw) {
   return raw
@@ -17,9 +19,6 @@ function cleanJsonString(raw) {
 // Environment variable validation
 const requiredEnvVars = [
   'OPENAI_API_KEY',
-  'OWNER_NAME',
-  'OWNER_LANG',
-  'OWNER_NAME_ALT',
   'SMTP_HOST',
   'SMTP_USER',
   'SMTP_PASS',
@@ -47,6 +46,32 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Template configuration
+const TEMPLATE_CONFIG_PATH = path.join(__dirname, '../config/template.json');
+
+// Get template configuration
+router.get('/template-config', async (req, res) => {
+  try {
+    const templateConfig = await fs.readFile(TEMPLATE_CONFIG_PATH, 'utf8');
+    res.json(JSON.parse(templateConfig));
+  } catch (error) {
+    console.error('Error reading template config:', error);
+    res.status(500).json({ error: 'Failed to read template configuration' });
+  }
+});
+
+// Update template configuration
+router.post('/template-config', async (req, res) => {
+  try {
+    const templateConfig = req.body;
+    await fs.writeFile(TEMPLATE_CONFIG_PATH, JSON.stringify(templateConfig, null, 2));
+    res.json({ message: 'Template configuration updated successfully' });
+  } catch (error) {
+    console.error('Error updating template config:', error);
+    res.status(500).json({ error: 'Failed to update template configuration' });
+  }
+});
+
 // Add request logging middleware
 router.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
@@ -62,25 +87,30 @@ router.use((req, res, next) => {
 
 // Generate email
 router.post('/generate-email', async (req, res) => {
-  const { toknow, todo } = req.body;
-  // if (!subject) {
-  //   return res.status(400).json({ error: "Subject is required" });
-  // }
+  const { formData, templateConfig } = req.body;
+  
   try {
+    // Replace variables in the user prompt
+    let userPrompt = templateConfig.promptTemplate.user;
+    Object.entries(formData).forEach(([key, value]) => {
+      userPrompt = userPrompt.replace(`{${key}}`, value);
+    });
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: `You are an assistant that generates professional emails to ${process.env.OWNER_NAME}, based on what the sender want him to know and what they want the him to do. The contents can be in any language but everythin in the email should be written in English. Please generate JSON-like content with fields subject and content.` },
-        { role: "user", content: 
-            `I want ${process.env.OWNER_NAME} to know: ${toknow}.\n` +
-            `I want ${process.env.OWNER_NAME} to do: ${todo}.\n` +
-            "Compose a detailed, polite, and professional email based on the above information."
+        { 
+          role: "system", 
+          content: `You are an assistant that generates professional emails to ${templateConfig.owner.name}. The contents can be in any language but everything in the email should be written in English. You must always respond in JSON format with exactly two fields: 'subject' (string) and 'content' (string).`
+        },
+        { 
+          role: "user", 
+          content: userPrompt
         }
       ],
       temperature: 0.7
     });
     const emailText = completion.choices[0].message.content.trim();
-    // res.json({ email: emailText });
     res.json(JSON.parse(cleanJsonString(emailText)));
   } catch (error) {
     const errorDetails = {
@@ -95,7 +125,6 @@ router.post('/generate-email', async (req, res) => {
     
     console.error("OpenAI error details:", errorDetails);
     
-    // Send back a sanitized version of the error
     res.status(500).json({ 
       error: "Failed to generate email content",
       details: error.message,
@@ -107,7 +136,7 @@ router.post('/generate-email', async (req, res) => {
 
 // translate email
 router.post('/translate-email', async (req, res) => {
-  const { subject, content } = req.body;
+  const { subject, content, templateConfig } = req.body;
   if (!subject) {
     return res.status(400).json({ error: "Subject is required" });
   }
@@ -118,17 +147,22 @@ router.post('/translate-email', async (req, res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: `You are an expert in translating English into ${process.env.OWNER_LANG}. Translate the given email to ${process.env.OWNER_LANG}. Please note that the receiver's name in ${process.env.OWNER_LANG} is ${process.env.OWNER_NAME_ALT}. Please generate JSON-like content with fields subject_translation and content_translation.` },
-        { role: "user", content: 
+        { 
+          role: "system", 
+          content: `You are an expert in translating English into ${templateConfig.owner.language}. Translate the given email to ${templateConfig.owner.language}. Please note that the receiver's name in ${templateConfig.owner.language} is ${templateConfig.owner.nameAlt}. Please generate JSON-like content with fields subject_translation and content_translation.` 
+        },
+        { 
+          role: "user", 
+          content: 
             `Subject: ${subject}\n` +
             `${content}\n` +
-            `Translate the whole email into ${process.env.OWNER_LANG}.`
+            `Translate the whole email into ${templateConfig.owner.language}.`
         }
       ],
       temperature: 0.7
     });
     const emailText = completion.choices[0].message.content.trim();
-    res.json({...JSON.parse(cleanJsonString(emailText)), ...{language: process.env.OWNER_LANG}});
+    res.json({...JSON.parse(cleanJsonString(emailText)), ...{language: templateConfig.owner.language}});
   } catch (error) {
     console.error("OpenAI translation error details:", {
       message: error.message,
@@ -143,7 +177,6 @@ router.post('/translate-email', async (req, res) => {
     });
   }
 });
-
 
 // Send email
 router.post('/send-email', async (req, res) => {

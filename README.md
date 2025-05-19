@@ -42,11 +42,6 @@ NODE_ENV=production  # Change to 'development' for development mode
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key_here
 
-# Owner Information
-OWNER_NAME=Your Name  # Your name in English (e.g., John Smith)
-OWNER_LANG=Your Language  # Your preferred language (e.g., Chinese, Spanish, French)
-OWNER_NAME_ALT=Your Name in Preferred Language  # Your name in your preferred language
-
 # SMTP Configuration
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
@@ -57,30 +52,51 @@ SMTP_PASS=your_email_password_here
 EMAIL_RECIPIENT=recipient@example.com  # Where you want to receive the emails
 ```
 
-### Frontend Configuration
+### Template Configuration
 
-Create a `.env` file in the `frontend` folder with the following variables:
+The template configuration is stored in `backend/config/template.json`. You can customize:
 
-```env
-VITE_OWNER_NAME=Your Name  # This will be displayed in the website title and header
+1. Owner Information:
+```json
+{
+  "owner": {
+    "name": "Your Name",  // Your name in English
+    "nameAlt": "Your Name in Preferred Language",  // Your name in your preferred language
+    "language": "Your Language"  // Your preferred language (e.g., Chinese, Spanish, French)
+  }
+}
 ```
 
-Replace the placeholder values with your actual configuration:
+2. UI Elements:
+```json
+{
+  "title": "Your title here",
+  "welcomeMessage": "Your welcome message here"
+}
+```
 
-Backend variables:
-- `NODE_ENV`: Set to 'production' for production deployment, 'development' for development
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `OWNER_NAME`: Your name in English (this will be used in the generated emails)
-- `OWNER_LANG`: The language you want emails translated to (e.g., Chinese, Spanish, French)
-- `OWNER_NAME_ALT`: Your name written in your preferred language
-- `SMTP_HOST`: Your email server host (e.g., smtp.gmail.com for Gmail)
-- `SMTP_PORT`: Email server port (usually 587 for TLS or 465 for SSL)
-- `SMTP_USER`: Your email address (for sending the emails)
-- `SMTP_PASS`: Your email password or app-specific password
-- `EMAIL_RECIPIENT`: Email address where you want to receive the emails (can be different from SMTP_USER)
+3. Form Questions:
+```json
+{
+  "questions": [
+    {
+      "id": "uniqueId",
+      "label": "Question Label",
+      "placeholder": "Placeholder Text",
+      "type": "text"  // or "textarea" for multiple rows
+    }
+  ]
+}
+```
 
-Frontend variables:
-- `VITE_OWNER_NAME`: Your name as you want it to appear in the website title and header
+4. Email Generation Prompt:
+```json
+{
+  "promptTemplate": {
+    "user": "Your custom prompt here." // Use {id}'s in {questions} for form values.
+  }
+}
+```
 
 ## Deployment
 
@@ -99,6 +115,7 @@ For production deployment, you'll serve both the frontend and backend from the s
    - Create `.env` file in the `backend` folder
    - Set `NODE_ENV=production` in `.env`
    - Configure all other environment variables as described above
+   - Customize `backend/config/template.json` with your settings
 
 2. From the project root, install dependencies and build:
 ```bash
@@ -120,6 +137,7 @@ For development, you'll run the frontend and backend servers separately:
    - Create `.env` file in the `backend` folder
    - Set `NODE_ENV=development` in `.env`
    - Configure all other environment variables as described above
+   - Customize `backend/config/template.json` with your settings
 
 2. From the project root, start the backend server (first terminal):
 ```bash

@@ -1,0 +1,34 @@
+{
+  "owner": {
+    "name": "Lingze Zhang",
+    "nameAlt": "张凌泽",
+    "language": "Chinese"
+  },
+  "title": "Email Lingze eAIsily!",
+  "welcomeMessage": "Please answer the following questions in any language! You don't need to think about how to make the email organized or polite. Just write down anything you'd like to share!",
+  "questions": [
+    {
+      "id": "emailAddr",
+      "label": "What's your email address? (We need this to reply. You may leave this blank if you want to be anonymous.)",
+      "placeholder": "Your email address",
+      "type": "text"
+    },
+    {
+      "id": "toknow",
+      "label": "What do you want me to know? (Feel free to include your name!)",
+      "placeholder": "What do you want me to know?",
+      "type": "textarea",
+      "rows": 3
+    },
+    {
+      "id": "todo",
+      "label": "What do you want me to do?",
+      "placeholder": "What do you want me to do?",
+      "type": "textarea",
+      "rows": 3
+    }
+  ],
+  "promptTemplate": {
+    "user": "I want Lingze to know: {toknow}.\nI want Lingze to do: {todo}.\n\nCompose a detailed, polite, and professional email based on the above information."
+  }
+} 
