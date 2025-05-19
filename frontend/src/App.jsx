@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
 
 function App() {
-  const [emailAddr, setEmailAddr] = useState('');
-  const [toknow, setToKnow] = useState('');
-  const [todo, setToDo] = useState('');
+  const [formData, setFormData] = useState({});
+  const [templateConfig, setTemplateConfig] = useState(null);
   const [generatedEmailSubject, setGeneratedEmailSubject] = useState('');
   const [generatedEmailContent, setGeneratedEmailContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const ownerName = import.meta.env.VITE_OWNER_NAME || 'the owner';
 
   useEffect(() => {
-    // Update document title
-    document.title = `Email ${ownerName} EAIsily!`;
-  }, [ownerName]);
+    // Load template configuration
+    fetch('/api/template-config')
+      .then(res => res.json())
+      .then(config => {
+        setTemplateConfig(config);
+        // Initialize form data
+        const initialFormData = {};
+        config.questions.forEach(q => {
+          initialFormData[q.id] = '';
+        });
+        setFormData(initialFormData);
+        // Update document title
+        document.title = config.title;
+      })
+      .catch(err => console.error('Failed to load template config:', err));
+  }, []);
+
+  const handleInputChange = (id, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -21,7 +39,10 @@ function App() {
       const res = await fetch('/api/generate-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ toknow, todo })
+        body: JSON.stringify({ 
+          formData,
+          templateConfig 
+        })
       });
       if (!res.ok) throw new Error('Error generating email');
       const data = await res.json();
@@ -47,7 +68,8 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject: generatedEmailSubject,
-          content: generatedEmailContent
+          content: generatedEmailContent,
+          templateConfig
         })
       });
       if (!translationRes.ok) throw new Error('Error translating email');
@@ -57,8 +79,8 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject: "[EAIsyEmail" + (emailAddr ? ` - Reply to: ${emailAddr}` : '') + "] " + (translationData ? generatedEmailSubject + " (" + translationData.subject_translation + ")" : ''),
-          emailBody: generatedEmailContent + (emailAddr ? `\n\nReply to: ${emailAddr}` : '') + "\n\n" + translationData.content_translation
+          subject: "[EAIsyEmail" + (formData.emailAddr ? ` - Reply to: ${formData.emailAddr}` : '') + "] " + (translationData ? generatedEmailSubject + " (" + translationData.subject_translation + ")" : ''),
+          emailBody: generatedEmailContent + (formData.emailAddr ? `\n\nReply to: ${formData.emailAddr}` : '') + "\n\n" + translationData.content_translation
         })
       });
       if (!res.ok) throw new Error('Error sending email');
@@ -72,42 +94,43 @@ function App() {
     }
   };
 
+  if (!templateConfig) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Email {ownerName} eAIsily!</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        {templateConfig.title}
+      </h1>
       <p className="mb-4 text-gray-400">
-        Please answer the following questions in any language! You don't need to think about how to make the email organized or polite. Just write down anything you'd like to share!
+        {templateConfig.welcomeMessage}
       </p>
 
-      <h3 className="mb-4">What's your email address? (We need this to reply. You may leave this blank if you want to be anonymous.)</h3>
-      <input
-        className="border border-gray-300 rounded w-full p-2 mb-4"
-        type="text"
-        placeholder="Your email address"
-        value={emailAddr}
-        onChange={e => setEmailAddr(e.target.value)}
-        disabled={isGenerating || isSending}
-      />
-
-      <h3 className="mb-4">What do you want me to know? (Feel free to include your name!)</h3>
-      <textarea
-        className="border border-gray-300 rounded w-full p-2 mb-4"
-        rows="3"
-        placeholder="What do you want me to know?"
-        value={toknow}
-        onChange={e => setToKnow(e.target.value)}
-        disabled={isGenerating || isSending}
-      />
-
-      <h3 className="mb-4">What do you want me to do?</h3>
-      <textarea
-        className="border border-gray-300 rounded w-full p-2 mb-4"
-        rows="3"
-        placeholder="What do you want me to do?"
-        value={todo}
-        onChange={e => setToDo(e.target.value)}
-        disabled={isGenerating || isSending}
-      />
+      {templateConfig.questions.map(question => (
+        <div key={question.id}>
+          <h3 className="mb-4">{question.label}</h3>
+          {question.type === 'textarea' ? (
+            <textarea
+              className="border border-gray-300 rounded w-full p-2 mb-4"
+              rows={question.rows}
+              placeholder={question.placeholder}
+              value={formData[question.id]}
+              onChange={e => handleInputChange(question.id, e.target.value)}
+              disabled={isGenerating || isSending}
+            />
+          ) : (
+            <input
+              className="border border-gray-300 rounded w-full p-2 mb-4"
+              type={question.type}
+              placeholder={question.placeholder}
+              value={formData[question.id]}
+              onChange={e => handleInputChange(question.id, e.target.value)}
+              disabled={isGenerating || isSending}
+            />
+          )}
+        </div>
+      ))}
 
       <button
         className={`bg-blue-500 text-white font-semibold py-2 px-4 rounded mb-4 hover:bg-blue-600 ${(isGenerating || isSending) ? 'opacity-50 cursor-not-allowed' : ''}`}
