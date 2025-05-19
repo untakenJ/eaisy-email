@@ -7,6 +7,7 @@ function App() {
   const [generatedEmailContent, setGeneratedEmailContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [attachments, setAttachments] = useState([]);
 
   useEffect(() => {
     // Load template configuration
@@ -56,6 +57,15 @@ function App() {
     }
   };
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setAttachments(prev => [...prev, ...files]);
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSend = async () => {
     if (!generatedEmailContent.trim()) {
       alert("No email content to send. Please generate an email first.");
@@ -75,17 +85,24 @@ function App() {
       if (!translationRes.ok) throw new Error('Error translating email');
       const translationData = await translationRes.json();
       
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('subject', "[EAIsyEmail" + (formData.emailAddr ? ` - Reply to: ${formData.emailAddr}` : '') + "] " + (translationData ? generatedEmailSubject + " (" + translationData.subject_translation + ")" : ''));
+      formDataToSend.append('emailBody', generatedEmailContent + (formData.emailAddr ? `\n\nReply to: ${formData.emailAddr}` : '') + "\n\n" + translationData.content_translation);
+      
+      // Append attachments
+      attachments.forEach(file => {
+        formDataToSend.append('attachments', file);
+      });
+      
       const res = await fetch('/api/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject: "[EAIsyEmail" + (formData.emailAddr ? ` - Reply to: ${formData.emailAddr}` : '') + "] " + (translationData ? generatedEmailSubject + " (" + translationData.subject_translation + ")" : ''),
-          emailBody: generatedEmailContent + (formData.emailAddr ? `\n\nReply to: ${formData.emailAddr}` : '') + "\n\n" + translationData.content_translation
-        })
+        body: formDataToSend
       });
       if (!res.ok) throw new Error('Error sending email');
       await res.json();
       alert("Email sent successfully!");
+      setAttachments([]); // Clear attachments after successful send
     } catch (err) {
       console.error('Failed to send email:', err);
       alert("Failed to send email. Please check the console for details.");
@@ -131,6 +148,37 @@ function App() {
           )}
         </div>
       ))}
+
+      {/* File Upload Section */}
+      <div className="mb-4">
+        <h3 className="mb-2">Attachments (Optional)</h3>
+        <input
+          type="file"
+          multiple
+          onChange={handleFileChange}
+          className="border border-gray-300 rounded w-full p-2"
+          disabled={isGenerating || isSending}
+        />
+        {attachments.length > 0 && (
+          <div className="mt-2">
+            <h4 className="text-sm font-medium mb-2">Selected files:</h4>
+            <ul className="space-y-1">
+              {attachments.map((file, index) => (
+                <li key={index} className="flex items-center justify-between text-sm">
+                  <span>{file.name}</span>
+                  <button
+                    onClick={() => removeAttachment(index)}
+                    className="text-red-500 hover:text-red-700"
+                    disabled={isGenerating || isSending}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
       <button
         className={`bg-blue-500 text-white font-semibold py-2 px-4 rounded mb-4 hover:bg-blue-600 ${(isGenerating || isSending) ? 'opacity-50 cursor-not-allowed' : ''}`}
