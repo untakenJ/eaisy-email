@@ -4,6 +4,8 @@ const OpenAI = require('openai');
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 function cleanJsonString(raw) {
   return raw
@@ -179,20 +181,37 @@ router.post('/translate-email', async (req, res) => {
 });
 
 // Send email
-router.post('/send-email', async (req, res) => {
+router.post('/send-email', upload.array('attachments'), async (req, res) => {
   const { subject, emailBody } = req.body;
+  const files = req.files || [];
+  
   if (!emailBody) {
     return res.status(400).json({ error: "Email body required" });
   }
+  
   try {
-    await transporter.sendMail({
+    const mailOptions = {
       from: process.env.SMTP_USER,
       to: process.env.EMAIL_RECIPIENT,
       subject: subject || "(No Subject)",
-      text: emailBody
-    });
+      text: emailBody,
+      attachments: files.map(file => ({
+        filename: file.originalname,
+        path: file.path
+      }))
+    };
+
+    await transporter.sendMail(mailOptions);
+    
+    // Clean up uploaded files
+    await Promise.all(files.map(file => fs.unlink(file.path)));
+    
     res.json({ message: "Email sent successfully" });
   } catch (error) {
+    // Clean up uploaded files in case of error
+    if (files.length > 0) {
+      await Promise.all(files.map(file => fs.unlink(file.path).catch(() => {})));
+    }
     console.error("Nodemailer error:", error);
     res.status(500).json({ error: "Failed to send email" });
   }
