@@ -2,7 +2,7 @@
 
 A customizable web application that makes it easy for people to email you! 
 
-For any feedback, just try our tool to [email the author](https://eaisyemail.lzhang.org/)!
+For any feedback, just try our tool to [email the author](https://lingze.eaisy.email/)!
 
 ## Overview
 
