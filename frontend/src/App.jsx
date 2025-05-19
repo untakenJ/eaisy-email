@@ -232,7 +232,7 @@ function App() {
             href="https://github.com/untakenJ/eaisy-email" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="hover:text-gray-700 ml-1"
+            className="hover:text-gray-700 ml-1 underline"
           >
             GitHub Repo
           </a>
