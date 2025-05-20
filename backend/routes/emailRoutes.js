@@ -193,7 +193,7 @@ router.post('/send-email', upload.array('attachments'), async (req, res) => {
   
   try {
     const mailOptions = {
-      from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
+      from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
       to: process.env.EMAIL_RECIPIENT,
       subject: subject || "(No Subject)",
       text: emailBody,
