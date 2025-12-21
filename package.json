@@ -1,0 +1,9 @@
+{
+    "name": "my-monorepo",
+    "private": true,
+    "scripts": {
+      "gcp-build": "npm --prefix backend install && npm --prefix frontend install && npm --prefix frontend run build",
+      "start": "npm --prefix backend start"
+    }
+  }
+  

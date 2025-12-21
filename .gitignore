@@ -11,3 +11,5 @@ frontend/dist/
 .DS_Store
 
 nohup.out
+
+infra/
